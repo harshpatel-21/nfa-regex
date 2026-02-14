@@ -1,4 +1,4 @@
-import { useAppContext } from '../../state/AppContext';
+import { useAppContext } from '../../hooks/useAppContext';
 import { NFAInputPanel } from '../nfa-input/NFAInputPanel';
 import { ConversionPanel } from '../conversion/ConversionPanel';
 

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAppContext } from '../state/AppContext';
+import { useAppContext } from './useAppContext';
 import { validateNFA } from '../core/validation';
 import type { NFA } from '../core/types';
 

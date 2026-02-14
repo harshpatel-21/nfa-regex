@@ -1,4 +1,4 @@
-import { useAppContext } from '../../state/AppContext';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export function Header() {
   const { state } = useAppContext();

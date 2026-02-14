@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { useAppContext } from '../state/AppContext';
+import { useAppContext } from './useAppContext';
 import { preprocessForElimination } from '../core/nfa';
 import { stateEliminationGenerator } from '../core/stateElimination';
 import type { EliminationStep } from '../core/types';

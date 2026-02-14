@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -12,7 +12,7 @@ import {
   type EdgeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useAppContext } from '../../state/AppContext';
+import { useAppContext } from '../../hooks/useAppContext';
 import { useGraphLayout } from '../../hooks/useGraphLayout';
 import { StateNode } from './StateNode';
 import { TransitionEdge } from './TransitionEdge';
@@ -31,7 +31,6 @@ export function GraphCanvas() {
   const { getLayout } = useGraphLayout();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [layoutKey, setLayoutKey] = useState(0);
 
   // Determine which data source to use based on mode
   const dataSource = useMemo(() => {
@@ -62,7 +61,6 @@ export function GraphCanvas() {
 
     setNodes(updatedNodes);
     setEdges(layout.edges);
-    setLayoutKey(k => k + 1);
   }, [dataSource, state.mode, state.conversion.selectedStateId, getLayout, setNodes, setEdges]);
 
   const onNodeDragStop = useCallback(
@@ -78,7 +76,6 @@ export function GraphCanvas() {
     <div className="relative w-full h-full bg-gray-50">
       <GraphToolbar />
       <ReactFlow
-        key={layoutKey}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}

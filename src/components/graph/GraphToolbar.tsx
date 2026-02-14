@@ -1,4 +1,4 @@
-import { useAppContext } from '../../state/AppContext';
+import { useAppContext } from '../../hooks/useAppContext';
 import { useNFA } from '../../hooks/useNFA';
 
 export function GraphToolbar() {

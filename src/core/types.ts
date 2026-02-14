@@ -18,9 +18,8 @@ export interface NFA {
   alphabet: string[];
 }
 
-export interface GTG extends NFA {
-  // Same structure but transition symbols can be full regex expressions
-}
+export type GTG = NFA;
+// Same structure as NFA, but transition symbols can be full regex expressions
 
 export interface PathUpdate {
   from: string;

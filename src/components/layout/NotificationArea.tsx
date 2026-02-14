@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { setNotificationHandler } from '../../utils/notify';
 
 interface Notification {
   id: string;
@@ -7,26 +8,19 @@ interface Notification {
   type: 'info' | 'success' | 'error';
 }
 
-// Simple global notification state - could be expanded to use context
-let addNotificationFn: ((n: Omit<Notification, 'id'>) => void) | null = null;
-
-export function notify(message: string, type: 'info' | 'success' | 'error' = 'info') {
-  addNotificationFn?.({ message, type });
-}
-
 export function NotificationArea() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    addNotificationFn = (n) => {
+    setNotificationHandler((n) => {
       const id = Math.random().toString(36).substring(2, 9);
       setNotifications(prev => [...prev, { ...n, id }]);
       setTimeout(() => {
         setNotifications(prev => prev.filter(p => p.id !== id));
       }, 4000);
-    };
+    });
     return () => {
-      addNotificationFn = null;
+      setNotificationHandler(null);
     };
   }, []);
 
