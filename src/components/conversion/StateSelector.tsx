@@ -1,9 +1,7 @@
 import { useConversion } from '../../hooks/useConversion';
-import { useAppContext } from '../../state/AppContext';
 import { getEliminatableStates } from '../../core/nfa';
 
 export function StateSelector() {
-  const { state } = useAppContext();
   const { conversion, selectState } = useConversion();
 
   if (!conversion.gtg) return null;

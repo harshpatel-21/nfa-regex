@@ -1,10 +1,8 @@
 import { useConversion } from '../../hooks/useConversion';
-import { useAppContext } from '../../state/AppContext';
 import { PathUpdateForm } from './PathUpdateForm';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function ConversionPanel() {
-  const { state } = useAppContext();
   const { conversion, currentStep, hasNextStep, hasPrevStep, nextStep, prevStep, updateUserInput, reset } = useConversion();
 
   const getStateLabel = (id: string): string => {
