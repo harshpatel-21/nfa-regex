@@ -77,6 +77,15 @@ export function conversionReducer(
       }
 
     case 'SET_PATH_UPDATES':
+      // If there are no path updates (unreachable state), skip directly to step-complete
+      if (action.payload.length === 0) {
+        return {
+          ...state,
+          phase: 'step-complete',
+          currentPathUpdates: [],
+          currentPathIndex: 0,
+        }
+      }
       return {
         ...state,
         phase: 'updating-paths',

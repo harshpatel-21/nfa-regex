@@ -74,8 +74,16 @@ export function ConversionPanel() {
         <div className="flex flex-col gap-3">
           <div className="rounded bg-green-50 border border-green-200 p-3">
             <p className="text-sm text-green-700">
-              All paths updated for state{' '}
-              <span className="font-mono font-semibold">{removedStateLabel}</span>.
+              {currentPathUpdates.length === 0 ? (
+                <>
+                  State <span className="font-mono font-semibold">{removedStateLabel}</span> is unreachable (no incoming paths). It can be removed without affecting the regex.
+                </>
+              ) : (
+                <>
+                  All paths updated for state{' '}
+                  <span className="font-mono font-semibold">{removedStateLabel}</span>.
+                </>
+              )}
             </p>
           </div>
           <Button onClick={completeElimination}>

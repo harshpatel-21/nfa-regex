@@ -81,11 +81,16 @@ export function useConversion() {
       (s) => s.id === stateId
     )
 
+    const pathCount = conversionState.currentPathUpdates.length
+    const explanationText = pathCount === 0
+      ? `Eliminated unreachable state ${removedState?.label ?? stateId}. No path updates needed.`
+      : `Eliminated state ${removedState?.label ?? stateId}. Updated ${pathCount} path(s).`
+
     const step = {
       type: 'eliminate' as const,
       stateToRemove: stateId,
       affectedPaths: conversionState.currentPathUpdates,
-      explanation: `Eliminated state ${removedState?.label ?? stateId}. Updated ${conversionState.currentPathUpdates.length} path(s).`,
+      explanation: explanationText,
       gtgBefore: before,
       gtgAfter: cloneNFA(newGtg),
     }
