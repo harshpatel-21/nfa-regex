@@ -30,7 +30,7 @@ export function ConversionPanel() {
         <h2 className="text-sm font-semibold text-gray-700">
           State Elimination
         </h2>
-        <Button size="sm" variant="ghost" onClick={resetConversion}>
+        <Button size="sm" className="pr-8" variant="ghost" onClick={resetConversion}>
           ← Back to Input
         </Button>
       </div>
