@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -7,6 +7,9 @@ import {
   type Connection,
   ReactFlowProvider,
   MarkerType,
+  type Node,
+  type NodeChange,
+  applyNodeChanges,
 } from '@xyflow/react'
 import { useNFA } from '../../hooks/useNFA'
 import { useAppContext } from '../../state/AppContext'
@@ -43,7 +46,35 @@ function GraphCanvasInner() {
       }
     : undefined
 
-  const { nodes, edges } = useGraphLayout(graphData, { highlight })
+  const { nodes: layoutedNodes, edges } = useGraphLayout(graphData, { highlight })
+
+  // Track manually dragged positions so they survive re-renders
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({})
+  const [displayNodes, setDisplayNodes] = useState<Node[]>(layoutedNodes)
+
+  // When layout changes (graph structure or highlight update), merge in saved positions
+  useEffect(() => {
+    setDisplayNodes(
+      layoutedNodes.map((node) => ({
+        ...node,
+        position: nodePositions[node.id] ?? node.position,
+      }))
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutedNodes])
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setDisplayNodes((prev) => applyNodeChanges(changes, prev))
+    const posChanges: Record<string, { x: number; y: number }> = {}
+    for (const change of changes) {
+      if (change.type === 'position' && change.position) {
+        posChanges[change.id] = change.position
+      }
+    }
+    if (Object.keys(posChanges).length > 0) {
+      setNodePositions((prev) => ({ ...prev, ...posChanges }))
+    }
+  }, [])
 
   const nodeTypes = useMemo(() => ({ stateNode: StateNode }), [])
   const edgeTypes = useMemo(() => ({ transitionEdge: TransitionEdge }), [])
@@ -90,15 +121,16 @@ function GraphCanvasInner() {
   return (
     <div className="w-full h-full relative">
       <ReactFlow
-        nodes={nodes}
+        nodes={displayNodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onConnect={onConnect}
+        onNodesChange={onNodesChange}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
         fitViewOptions={{ padding: 0.3 }}
-        nodesDraggable={nfaToRegexPhase === 'input'}
+        nodesDraggable
         nodesConnectable={nfaToRegexPhase === 'input'}
         proOptions={{ hideAttribution: true }}
       >
