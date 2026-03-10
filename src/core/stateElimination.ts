@@ -99,6 +99,7 @@ export function computePathUpdates(
   gtg: GTG,
   stateId: StateId
 ): PathUpdate[] {
+  // filter out self-loops and direct transitions to be updated separately
   const incoming = getIncomingTransitions(gtg, stateId).filter(
     (t) => t.source !== stateId
   )
@@ -155,27 +156,28 @@ export function applyElimination(
   stateId: StateId,
   pathUpdates: PathUpdate[]
 ): GTG {
-  let result = cloneNFA(gtg)
+  let resultantNFA = cloneNFA(gtg)
 
   // First, apply all path updates (add/update direct transitions)
   for (const update of pathUpdates) {
-    const existing = getTransitionBetween(result, update.from, update.to)
-    if (existing) {
-      // Update existing transition with the new computed expression
-      result = {
-        ...result,
-        transitions: result.transitions.map((t) =>
-          t.id === existing.id
+    const existingTransition = getTransitionBetween(resultantNFA, update.from, update.to)
+    
+    // if a transition already exists, just need to update the symbol
+    if (existingTransition) {
+      resultantNFA = {
+        ...resultantNFA,
+        transitions: resultantNFA.transitions.map((t) =>
+          t.id === existingTransition.id
             ? { ...t, symbol: update.expectedResult }
             : t
         ),
       }
-    } else {
-      // Add new transition
-      result = {
-        ...result,
+    // Since no transition exists between the states, we create one with new symbol
+    } else { 
+      resultantNFA = {
+        ...resultantNFA,
         transitions: [
-          ...result.transitions,
+          ...resultantNFA.transitions,
           {
             id: generateTransitionId(),
             source: update.from,
@@ -188,15 +190,15 @@ export function applyElimination(
   }
 
   // Remove the eliminated state and all its transitions
-  result = {
-    ...result,
-    states: result.states.filter((s) => s.id !== stateId),
-    transitions: result.transitions.filter(
+  resultantNFA = {
+    ...resultantNFA,
+    states: resultantNFA.states.filter((s) => s.id !== stateId),
+    transitions: resultantNFA.transitions.filter(
       (t) => t.source !== stateId && t.target !== stateId
     ),
   }
 
-  return result
+  return resultantNFA
 }
 
 /**
@@ -219,58 +221,4 @@ export function extractFinalRegex(gtg: GTG): string {
  */
 export function getEliminableStates(gtg: GTG): State[] {
   return gtg.states.filter((s) => !s.isStart && !s.isFinal)
-}
-
-/**
- * Generator that yields each step of the state elimination process.
- */
-export function* stateEliminationGenerator(
-  inputGtg: GTG,
-  eliminationOrder?: StateId[]
-): Generator<EliminationStep, string, void> {
-  // Step 1: Preprocess
-  const { gtg: preprocessed, step: preprocessStep } = preprocess(inputGtg)
-  yield preprocessStep
-
-  let currentGtg = preprocessed
-
-  // Determine elimination order
-  const order =
-    eliminationOrder ?? getEliminableStates(currentGtg).map((s) => s.id)
-
-  // Step 2: Eliminate states one by one
-  for (const stateId of order) {
-    const state = currentGtg.states.find((s) => s.id === stateId)
-    if (!state) continue
-
-    const before = cloneNFA(currentGtg)
-    const pathUpdates = computePathUpdates(currentGtg, stateId)
-    currentGtg = applyElimination(currentGtg, stateId, pathUpdates)
-
-    const step: EliminationStep = {
-      type: 'eliminate',
-      stateToRemove: stateId,
-      affectedPaths: pathUpdates,
-      explanation: `Eliminated state ${state.label}. Updated ${pathUpdates.length} path(s).`,
-      gtgBefore: before,
-      gtgAfter: cloneNFA(currentGtg),
-    }
-
-    yield step
-  }
-
-  // Step 3: Extract final regex
-  const finalRegex = extractFinalRegex(currentGtg)
-
-  const extractStep: EliminationStep = {
-    type: 'extract',
-    affectedPaths: [],
-    explanation: `Final regex: ${finalRegex}`,
-    gtgBefore: cloneNFA(currentGtg),
-    gtgAfter: cloneNFA(currentGtg),
-  }
-
-  yield extractStep
-
-  return finalRegex
 }
