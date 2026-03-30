@@ -67,3 +67,31 @@ export interface ValidationError {
 
 export const EPSILON = 'ε'
 export const EMPTY_SET = '∅'
+
+// ---- Thompson's Construction types ----
+
+export type ThompsonTemplate = 'symbol' | 'epsilon' | 'union' | 'concat' | 'star'
+
+export interface ThompsonTransitionRow {
+  id: string
+  sourceLabel: string
+  symbol: string
+  targetLabel: string
+}
+
+export interface ThompsonStep {
+  id: string
+  template: ThompsonTemplate
+  subExprStart: number
+  subExprEnd: number // inclusive
+  subExpr: string
+  fragmentStartId: string
+  fragmentFinalId: string
+  newStateIds: string[]
+  newTransitionIds: string[]
+  nfaAfter: NFA
+  explanation: string
+  expectedTransitions: ThompsonTransitionRow[]
+}
+
+export type ThompsonPhase = 'idle' | 'stepping' | 'complete'

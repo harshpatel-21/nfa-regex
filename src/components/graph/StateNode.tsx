@@ -8,6 +8,7 @@ export interface StateNodeData {
   isBeingEliminated?: boolean
   isPredecessor?: boolean
   isSuccessor?: boolean
+  isNewlyAdded?: boolean
 }
 
 type StateNodeProps = NodeProps & { data: StateNodeData }
@@ -20,14 +21,22 @@ function StateNodeComponent({ data, selected }: StateNodeProps) {
     isBeingEliminated,
     isPredecessor,
     isSuccessor,
+    isNewlyAdded,
   } = data
 
   let borderColor = 'border-gray-400'
   if (isBeingEliminated) borderColor = 'border-red-500'
   else if (isPredecessor) borderColor = 'border-blue-500'
   else if (isSuccessor) borderColor = 'border-green-500'
+  else if (isNewlyAdded) borderColor = 'border-amber-500'
   else if (selected) borderColor = 'border-blue-400'
   else if (isStart) borderColor = 'border-green-500'
+
+  const bgColor = isBeingEliminated
+    ? 'bg-red-50'
+    : isNewlyAdded
+    ? 'bg-amber-50'
+    : 'bg-white'
 
   return (
     <div className="relative">
@@ -39,9 +48,9 @@ function StateNodeComponent({ data, selected }: StateNodeProps) {
       )}
       {/* Outer circle (double for final states) */}
       <div
-        className={`flex items-center justify-center rounded-full border-2 bg-white ${borderColor} ${
-          isBeingEliminated ? 'bg-red-50' : ''
-        } ${isFinal ? 'p-1' : 'w-16 h-16'}`}
+        className={`flex items-center justify-center rounded-full border-2 ${bgColor} ${borderColor} ${
+          isFinal ? 'p-1' : 'w-16 h-16'
+        }`}
         style={isFinal ? { width: 64, height: 64 } : undefined}
       >
         {isFinal ? (

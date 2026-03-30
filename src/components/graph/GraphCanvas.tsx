@@ -19,19 +19,44 @@ import { TransitionEdge } from './TransitionEdge'
 import { GraphToolbar } from './GraphToolbar'
 import { EdgeBendContext } from './EdgeBendContext'
 
+// THis file was mostly written by AI.
+
 function GraphCanvasInner() {
   const { nfa, nfaToRegexPhase, appMode } = useNFA()
-  const { conversionState } = useAppContext()
+  const { conversionState, thompsonState } = useAppContext()
   const { addTransition } = useNFA()
 
-  // Use GTG during conversion, NFA during input
-  const graphData =
-    appMode === 'nfa-to-regex' && nfaToRegexPhase === 'converting' && conversionState.gtg
-      ? conversionState.gtg
-      : nfa
+  const isThompson = appMode === 'regex-to-nfa'
+  const isConverting = appMode === 'nfa-to-regex' && nfaToRegexPhase === 'converting'
 
-  // Build highlight info for conversion mode
-  const isConverting = nfaToRegexPhase === 'converting'
+  // Thompson: determine which NFA snapshot to show
+  const thompsonDisplayNFA = useMemo(() => {
+    if (!isThompson) return null
+    const { phase, steps, currentStepIndex, isTemplateCorrect } = thompsonState
+    if (phase === 'idle') return null
+    if (phase === 'complete') return steps[steps.length - 1]?.nfaAfter ?? null
+    // stepping: show current step result only after correct template selected
+    if (isTemplateCorrect === true) return steps[currentStepIndex]?.nfaAfter ?? null
+    return currentStepIndex > 0 ? (steps[currentStepIndex - 1]?.nfaAfter ?? null) : null
+  }, [isThompson, thompsonState])
+
+  const thompsonHighlight = useMemo(() => {
+    if (!isThompson || thompsonState.phase !== 'stepping' || thompsonState.isTemplateCorrect !== true) {
+      return undefined
+    }
+    const step = thompsonState.steps[thompsonState.currentStepIndex]
+    if (!step) return undefined
+    return { newStateIds: step.newStateIds, newTransitionIds: step.newTransitionIds }
+  }, [isThompson, thompsonState])
+
+  // Use GTG during NFA→Regex conversion, Thompson NFA in regex-to-nfa mode, else user NFA
+  const graphData = isThompson
+    ? thompsonDisplayNFA
+    : isConverting && conversionState.gtg
+    ? conversionState.gtg
+    : nfa
+
+  // Build highlight info for NFA→Regex conversion mode
   const currentPath =
     isConverting &&
     conversionState.currentPathUpdates.length > 0 &&
@@ -51,7 +76,7 @@ function GraphCanvasInner() {
     [isConverting, conversionState.stateToRemove, currentPath, conversionState.highlightedR]
   )
 
-  const { nodes: layoutedNodes, edges } = useGraphLayout(graphData, { highlight })
+  const { nodes: layoutedNodes, edges } = useGraphLayout(graphData, { highlight, thompsonHighlight })
 
   // Track manually dragged positions so they survive re-renders
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({})
@@ -148,7 +173,7 @@ function GraphCanvasInner() {
         fitView
         fitViewOptions={{ padding: 0.3 }}
         nodesDraggable
-        nodesConnectable={nfaToRegexPhase === 'input'}
+        nodesConnectable={nfaToRegexPhase === 'input' && appMode === 'nfa-to-regex'}
         proOptions={{ hideAttribution: true }}
       >
         <Background />
