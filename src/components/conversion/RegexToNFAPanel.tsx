@@ -134,6 +134,19 @@ export function RegexToNFAPanel() {
   // ---- Complete phase ----
   if (phase === 'complete') {
     const finalStep = steps[steps.length - 1]
+
+    const handleExportFinal = () => {
+      if (!finalStep) return
+      const json = JSON.stringify(finalStep.nfaAfter, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `nfa.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+
     return (
       <div className="flex flex-col gap-4 p-4">
         <div className="flex items-center justify-between">
@@ -157,6 +170,10 @@ export function RegexToNFAPanel() {
             {finalStep?.nfaAfter.transitions.length ?? 0}
           </p>
         </div>
+
+        <Button variant="secondary" onClick={handleExportFinal} disabled={!finalStep}>
+          ↓ Export Final NFA
+        </Button>
       </div>
     )
   }

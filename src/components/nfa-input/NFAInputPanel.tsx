@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNFA } from '../../hooks/useNFA'
 import { useConversion } from '../../hooks/useConversion'
 import { useNotification } from '../layout/NotificationArea'
@@ -6,6 +6,7 @@ import { TransitionTable } from './TransitionTable'
 import { Button } from '../common/Button'
 import { examples } from '../../data/examples'
 import { EPSILON } from '../../core/types'
+import type { NFA } from '../../core/types'
 
 export function NFAInputPanel() {
   const {
@@ -25,6 +26,39 @@ export function NFAInputPanel() {
   const { notify } = useNotification()
   const [showExamples, setShowExamples] = useState(false)
   const [newSymbol, setNewSymbol] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleExport = () => {
+    const json = JSON.stringify(nfa, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'nfa.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string) as NFA
+        if (!Array.isArray(parsed.states) || !Array.isArray(parsed.transitions) || !Array.isArray(parsed.alphabet)) {
+          notify('Invalid NFA file — missing required fields', 'error')
+          return
+        }
+        loadNFA(parsed)
+        notify('NFA imported successfully', 'success')
+      } catch {
+        notify('Failed to parse NFA file', 'error')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   const handleStartConversion = () => {
     const errors = validate()
@@ -187,6 +221,23 @@ export function NFAInputPanel() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Import / Export */}
+      <div className="flex items-center gap-2 border-t border-gray-200 pt-2">
+        <Button size="sm" variant="ghost" onClick={handleExport} disabled={nfa.states.length === 0}>
+          ↓ Export NFA
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+          ↑ Import NFA
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleImport}
+        />
       </div>
 
       {/* Transition Table */}
