@@ -27,7 +27,7 @@ import { EdgeBendContext } from './EdgeBendContext'
 
 function GraphCanvasInner() {
   const { nfa, nfaToRegexPhase, appMode } = useNFA()
-  const { conversionState, thompsonState } = useAppContext()
+  const { stateEliminationState, thompsonState } = useAppContext()
   const { addTransition } = useNFA()
 
   const { fitView } = useReactFlow()
@@ -66,28 +66,28 @@ function GraphCanvasInner() {
   // Use GTG during NFA→Regex conversion, Thompson NFA in regex-to-nfa mode, else user NFA
   const graphData = isThompson
     ? thompsonDisplayNFA
-    : isConverting && conversionState.gtg
-    ? conversionState.gtg
+    : isConverting && stateEliminationState.gtg
+    ? stateEliminationState.gtg
     : nfa
 
   // Build highlight info for NFA→Regex conversion mode
   const currentPath =
     isConverting &&
-    conversionState.currentPathUpdates.length > 0 &&
-    conversionState.currentPathIndex < conversionState.currentPathUpdates.length
-      ? conversionState.currentPathUpdates[conversionState.currentPathIndex] ?? null
+    stateEliminationState.currentPathUpdates.length > 0 &&
+    stateEliminationState.currentPathIndex < stateEliminationState.currentPathUpdates.length
+      ? stateEliminationState.currentPathUpdates[stateEliminationState.currentPathIndex] ?? null
       : null
 
   const highlight = useMemo(
     () =>
       isConverting
         ? {
-            stateToRemove: conversionState.stateToRemove,
+            stateToRemove: stateEliminationState.stateToRemove,
             currentPath,
-            highlightedR: conversionState.highlightedR,
+            highlightedR: stateEliminationState.highlightedR,
           }
         : undefined,
-    [isConverting, conversionState.stateToRemove, currentPath, conversionState.highlightedR]
+    [isConverting, stateEliminationState.stateToRemove, currentPath, stateEliminationState.highlightedR]
   )
 
   const { nodes: layoutedNodes, edges } = useGraphLayout(graphData, { highlight, thompsonHighlight })

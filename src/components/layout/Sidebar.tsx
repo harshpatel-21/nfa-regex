@@ -5,7 +5,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { useNFA } from '../../hooks/useNFA'
 import { NFAInputPanel } from '../nfa-input/NFAInputPanel'
-import { ConversionPanel } from '../conversion/ConversionPanel'
+import { NfaToRegexPanel } from '../conversion/NfaToRegexPanel'
 import { RegexToNFAPanel } from '../conversion/RegexToNFAPanel'
 
 const MIN_WIDTH = 280
@@ -41,7 +41,7 @@ export function Sidebar() {
         <NFAInputPanel />
       )}
       {appMode === 'nfa-to-regex' && nfaToRegexPhase === 'converting' && (
-        <ConversionPanel />
+        <NfaToRegexPanel />
       )}
       {appMode === 'regex-to-nfa' && <RegexToNFAPanel />}
 

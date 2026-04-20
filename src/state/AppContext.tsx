@@ -12,11 +12,11 @@ import {
   type NFAAction,
 } from './nfaReducer'
 import {
-  conversionReducer,
-  initialConversionState,
-  type ConversionState,
-  type ConversionAction,
-} from './conversionReducer'
+  stateEliminationReducer,
+  initialStateEliminationState,
+  type StateEliminationState,
+  type StateEliminationAction,
+} from './stateEliminationReducer'
 import {
   thompsonReducer,
   initialThompsonState,
@@ -27,8 +27,8 @@ import {
 interface AppContextType {
   nfaState: NFAState
   nfaDispatch: React.Dispatch<NFAAction>
-  conversionState: ConversionState
-  conversionDispatch: React.Dispatch<ConversionAction>
+  stateEliminationState: StateEliminationState
+  stateEliminationDispatch: React.Dispatch<StateEliminationAction>
   thompsonState: ThompsonState
   thompsonDispatch: React.Dispatch<ThompsonAction>
 }
@@ -37,9 +37,9 @@ const AppContext = createContext<AppContextType | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [nfaState, nfaDispatch] = useReducer(nfaReducer, initialNFAState)
-  const [conversionState, conversionDispatch] = useReducer(
-    conversionReducer,
-    initialConversionState
+  const [stateEliminationState, stateEliminationDispatch] = useReducer(
+    stateEliminationReducer,
+    initialStateEliminationState
   )
   const [thompsonState, thompsonDispatch] = useReducer(
     thompsonReducer,
@@ -47,8 +47,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo(
-    () => ({ nfaState, nfaDispatch, conversionState, conversionDispatch, thompsonState, thompsonDispatch }),
-    [nfaState, conversionState, thompsonState]
+    () => ({ nfaState, nfaDispatch, stateEliminationState, stateEliminationDispatch, thompsonState, thompsonDispatch }),
+    [nfaState, stateEliminationState, thompsonState]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

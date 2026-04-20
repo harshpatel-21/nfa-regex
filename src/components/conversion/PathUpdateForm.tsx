@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { PathUpdate, GTG } from '../../core/types'
-import { useConversion } from '../../hooks/useConversion'
+import { useStateElimination } from '../../hooks/useStateElimination'
 import { FormulaDisplay } from './FormulaDisplay'
 import { Button } from '../common/Button'
 
@@ -22,7 +22,7 @@ export function PathUpdateForm({
   removedStateLabel,
   gtg,
 }: PathUpdateFormProps) {
-  const { submitAnswer, autoCompletePath, advancePath } = useConversion()
+  const { submitAnswer, autoCompletePath, advancePath } = useStateElimination()
   const [userInput, setUserInput] = useState('')
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [showAnswer, setShowAnswer] = useState(false)

@@ -2,12 +2,12 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useConversion } from '../../hooks/useConversion'
+import { useStateElimination } from '../../hooks/useStateElimination'
 import { StateSelector } from './StateSelector'
 import { PathUpdateForm } from './PathUpdateForm'
 import { Button } from '../common/Button'
 
-export function ConversionPanel() {
+export function NfaToRegexPanel() {
   const {
     phase,
     finalRegex,
@@ -21,7 +21,7 @@ export function ConversionPanel() {
     revertElimination,
     backToStateSelection,
     resetConversion,
-  } = useConversion()
+  } = useStateElimination()
 
   const canRevert = history.some(s => s.type === 'eliminate')
 

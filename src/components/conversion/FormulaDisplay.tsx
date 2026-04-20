@@ -4,7 +4,7 @@
  */
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useConversion } from '../../hooks/useConversion'
+import { useStateElimination } from '../../hooks/useStateElimination'
 
 interface RValueInfo {
   label: string
@@ -33,7 +33,7 @@ export function FormulaDisplay({
   successorLabel,
   removedStateLabel,
 }: FormulaDisplayProps) {
-  const { setHighlightedR } = useConversion()
+  const { setHighlightedR } = useStateElimination()
   const [openTooltip, setOpenTooltip] = useState<string | null>(null)
 
   const rValues: RValueInfo[] = [

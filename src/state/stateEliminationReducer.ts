@@ -2,13 +2,13 @@ import type {
   GTG,
   EliminationStep,
   PathUpdate,
-  ConversionPhase,
+  StateEliminationPhase,
   StateId,
 } from '../core/types'
 import { validateUserRegex } from '../core/validation'
 
-export interface ConversionState {
-  phase: ConversionPhase
+export interface StateEliminationState {
+  phase: StateEliminationPhase
   gtg: GTG | null
   history: EliminationStep[]
   currentStepIndex: number
@@ -19,9 +19,9 @@ export interface ConversionState {
   highlightedR: 'R1' | 'R2' | 'R3' | 'R4' | null
 }
 
-export type ConversionAction =
+export type StateEliminationAction =
   | { type: 'START_CONVERSION'; payload: GTG }
-  | { type: 'SET_PHASE'; payload: ConversionPhase }
+  | { type: 'SET_PHASE'; payload: StateEliminationPhase }
   | { type: 'PREPROCESS_COMPLETE'; payload: { gtg: GTG; step: EliminationStep } }
   | { type: 'SELECT_STATE_TO_REMOVE'; payload: StateId }
   | { type: 'SET_PATH_UPDATES'; payload: PathUpdate[] }
@@ -35,7 +35,7 @@ export type ConversionAction =
   | { type: 'REVERT_LAST_ELIMINATION' }
   | { type: 'RESET_CONVERSION' }
 
-export const initialConversionState: ConversionState = {
+export const initialStateEliminationState: StateEliminationState = {
   phase: 'idle',
   gtg: null,
   history: [],
@@ -47,14 +47,14 @@ export const initialConversionState: ConversionState = {
   highlightedR: null,
 }
 
-export function conversionReducer(
-  state: ConversionState,
-  action: ConversionAction
-): ConversionState {
+export function stateEliminationReducer(
+  state: StateEliminationState,
+  action: StateEliminationAction
+): StateEliminationState {
   switch (action.type) {
     case 'START_CONVERSION':
       return {
-        ...initialConversionState,
+        ...initialStateEliminationState,
         phase: 'preprocessing',
         gtg: action.payload,
       }
@@ -184,7 +184,7 @@ export function conversionReducer(
     }
 
     case 'RESET_CONVERSION':
-      return { ...initialConversionState }
+      return { ...initialStateEliminationState }
 
     default:
       return state

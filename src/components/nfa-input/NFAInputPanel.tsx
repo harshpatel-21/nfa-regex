@@ -4,7 +4,7 @@
  */
 import { useRef, useState } from 'react'
 import { useNFA } from '../../hooks/useNFA'
-import { useConversion } from '../../hooks/useConversion'
+import { useStateElimination } from '../../hooks/useStateElimination'
 import { useNotification } from '../layout/NotificationArea'
 import { TransitionTable } from './TransitionTable'
 import { Button } from '../common/Button'
@@ -26,7 +26,7 @@ export function NFAInputPanel() {
     selectedStateId,
     resetNFA,
   } = useNFA()
-  const { startConversion } = useConversion()
+  const { startConversion } = useStateElimination()
   const { notify } = useNotification()
   const [showExamples, setShowExamples] = useState(false)
   const [newSymbol, setNewSymbol] = useState('')

@@ -2,11 +2,11 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useConversion } from '../../hooks/useConversion'
+import { useStateElimination } from '../../hooks/useStateElimination'
 import { Button } from '../common/Button'
 
 export function StateSelector() {
-  const { eliminableStates, gtg, selectStateToRemove } = useConversion()
+  const { eliminableStates, gtg, selectStateToRemove } = useStateElimination()
 
   if (eliminableStates.length === 0) {
     return (

@@ -52,7 +52,7 @@ export type AppMode = 'nfa-to-regex' | 'regex-to-nfa'
 
 export type NFAToRegexPhase = 'input' | 'converting'
 
-export type ConversionPhase =
+export type StateEliminationPhase =
   | 'idle'
   | 'preprocessing'
   | 'selecting-state'
