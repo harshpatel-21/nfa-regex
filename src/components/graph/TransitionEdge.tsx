@@ -126,7 +126,9 @@ function TransitionEdgeComponent({
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation()
-    e.currentTarget.setPointerCapture(e.pointerId)
+    if ('setPointerCapture' in e.currentTarget) {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    }
     // Start drag from the current visual midpoint (bezier or bent)
     dragRef.current = { hx: handleX, hy: handleY }
   }
@@ -140,7 +142,9 @@ function TransitionEdgeComponent({
   }
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.releasePointerCapture(e.pointerId)
+    if ('releasePointerCapture' in e.currentTarget) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
     dragRef.current = null
   }
 

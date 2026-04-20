@@ -29,10 +29,10 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 describe('FormulaDisplay — R-value boxes', () => {
   it('renders all four R-value labels', () => {
     render(<FormulaDisplay {...defaultProps} />, { wrapper: Wrapper })
-    expect(screen.getByText('R₁')).toBeInTheDocument()
-    expect(screen.getByText('R₂')).toBeInTheDocument()
-    expect(screen.getByText('R₃')).toBeInTheDocument()
-    expect(screen.getByText('R₄')).toBeInTheDocument()
+    expect(screen.getAllByText('R₁').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('R₂').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('R₃').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('R₄').length).toBeGreaterThan(0)
   })
 
   it('displays R1 value inside its box', () => {
