@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppProvider } from '../../state/AppContext'
 import { NotificationProvider } from '../layout/NotificationArea'
 import { RegexToNFAPanel } from '../conversion/RegexToNFAPanel'
+import { regexExamples } from '../../data/regexExamples'
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -29,6 +30,26 @@ describe('RegexToNFAPanel — idle mode', () => {
     expect(screen.getByRole('button', { name: /Load Examples/i })).toBeInTheDocument()
   })
 
+  it('toggles examples panel from Load to Hide and back', async () => {
+    render(<RegexToNFAPanel />, { wrapper: Wrapper })
+
+    await userEvent.click(screen.getByRole('button', { name: /Load Examples/i }))
+    expect(screen.getByRole('button', { name: /Hide Examples/i })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /Hide Examples/i }))
+    expect(screen.getByRole('button', { name: /Load Examples/i })).toBeInTheDocument()
+  })
+
+  it('loads an example regex into the input when an example is clicked', async () => {
+    render(<RegexToNFAPanel />, { wrapper: Wrapper })
+
+    await userEvent.click(screen.getByRole('button', { name: /Load Examples/i }))
+    await userEvent.click(screen.getByText(regexExamples[0]!.name))
+
+    expect(screen.getByPlaceholderText(/a\+b/i)).toHaveValue(regexExamples[0]!.regex)
+    expect(screen.getByRole('button', { name: /Load Examples/i })).toBeInTheDocument()
+  })
+
   it('renders the "Start Construction" button', () => {
     render(<RegexToNFAPanel />, { wrapper: Wrapper })
     expect(screen.getByRole('button', { name: /Start Construction/i })).toBeInTheDocument()
@@ -44,6 +65,25 @@ describe('RegexToNFAPanel — idle mode', () => {
     const input = screen.getByPlaceholderText(/a\+b/i)
     await userEvent.type(input, 'a')
     expect(screen.getByRole('button', { name: /Start Construction/i })).not.toBeDisabled()
+  })
+
+  it('starts construction on Enter key when input is non-empty', async () => {
+    render(<RegexToNFAPanel />, { wrapper: Wrapper })
+    const input = screen.getByPlaceholderText(/a\+b/i)
+
+    await userEvent.type(input, 'a{Enter}')
+
+    expect(screen.getByText(/Current sub-expression/i)).toBeInTheDocument()
+  })
+
+  it('shows an error when starting construction with invalid regex', async () => {
+    render(<RegexToNFAPanel />, { wrapper: Wrapper })
+    const input = screen.getByPlaceholderText(/a\+b/i)
+
+    await userEvent.type(input, '@')
+    await userEvent.click(screen.getByRole('button', { name: /Start Construction/i }))
+
+    expect(screen.getByText(/Unexpected character/i)).toBeInTheDocument()
   })
 })
 
@@ -122,6 +162,10 @@ describe('RegexToNFAPanel — stepping mode', () => {
 })
 
 describe('RegexToNFAPanel — complete phase', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   async function completeConstruction(regex = 'a') {
     render(<RegexToNFAPanel />, { wrapper: Wrapper })
     const input = screen.getByPlaceholderText(/a\+b/i)
@@ -156,6 +200,44 @@ describe('RegexToNFAPanel — complete phase', () => {
 
     // Assert
     expect(screen.getByRole('button', { name: /Export Final NFA/i })).toBeInTheDocument()
+  })
+
+  it('shows pluralized step count when construction has multiple steps', async () => {
+    await completeConstruction('ab')
+    expect(screen.getByText(/NFA built in 3 steps\./i)).toBeInTheDocument()
+  })
+
+  it('executes final export handler', async () => {
+    const createObjectURL = vi.fn(() => 'blob:test-url')
+    const revokeObjectURL = vi.fn()
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    })
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    })
+    const clickSpy = vi.fn()
+    const originalCreateElement = document.createElement.bind(document)
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName.toLowerCase() === 'a') {
+        return {
+          href: '',
+          download: '',
+          click: clickSpy,
+        } as unknown as HTMLAnchorElement
+      }
+      return originalCreateElement(tagName)
+    })
+
+    await completeConstruction('a')
+    await userEvent.click(screen.getByRole('button', { name: /Export Final NFA/i }))
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
   })
 
   it('returns to idle phase after clicking Reset in the complete phase', async () => {

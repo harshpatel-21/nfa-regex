@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppProvider } from '../../state/AppContext'
 import { NotificationProvider } from '../layout/NotificationArea'
@@ -12,6 +12,10 @@ function Wrapper({ children }: { children: React.ReactNode }) {
     </NotificationProvider>
   )
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('NFAInputPanel — NFA-to-Regex input mode buttons', () => {
   it('renders the "+ Symbol" button', () => {
@@ -176,5 +180,132 @@ describe('NFAInputPanel — selected state panel', () => {
 
     // Assert — button text changes to ◉ Final after toggle
     expect(screen.getByRole('button', { name: /◉ Final/i })).toBeInTheDocument()
+  })
+
+  it('toggles start state label from "★ Start" to "Set Start" when clicked', async () => {
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+
+    expect(screen.getByRole('button', { name: /★ Start/i })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /★ Start/i }))
+    expect(screen.getByRole('button', { name: /Set Start/i })).toBeInTheDocument()
+  })
+
+  it('removes the selected state when "- State" is clicked', async () => {
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+
+    await userEvent.click(screen.getByRole('button', { name: /- State/i }))
+    expect(screen.queryByText('q0')).not.toBeInTheDocument()
+  })
+})
+
+describe('NFAInputPanel — import/export handlers', () => {
+  it('runs export flow and revokes object URL', async () => {
+    const createObjectURL = vi.fn(() => 'blob:nfa-url')
+    const revokeObjectURL = vi.fn()
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    })
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    })
+    const clickSpy = vi.fn()
+    const originalCreateElement = document.createElement.bind(document)
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName.toLowerCase() === 'a') {
+        return {
+          href: '',
+          download: '',
+          click: clickSpy,
+        } as unknown as HTMLAnchorElement
+      }
+      return originalCreateElement(tagName)
+    })
+
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Export NFA/i }))
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:nfa-url')
+  })
+
+  it('clicking "Import NFA" triggers hidden file input click', async () => {
+    const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click')
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+
+    await userEvent.click(screen.getByRole('button', { name: /Import NFA/i }))
+    expect(clickSpy).toHaveBeenCalled()
+  })
+
+  it('imports a valid NFA JSON file successfully', async () => {
+    class FileReaderMock {
+      onload: ((event: { target: { result: string } }) => void) | null = null
+      readAsText() {
+        this.onload?.({
+          target: {
+            result: JSON.stringify({
+              states: [{ id: 'q0', label: 'q0', isStart: true, isFinal: true }],
+              transitions: [],
+              alphabet: [],
+            }),
+          },
+        })
+      }
+    }
+
+    vi.stubGlobal('FileReader', FileReaderMock)
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['{}'], 'nfa.json', { type: 'application/json' })
+    fireEvent.change(fileInput, { target: { files: [file] } })
+
+    expect(await screen.findByText(/NFA imported successfully/i)).toBeInTheDocument()
+  })
+
+  it('shows an error for malformed imported JSON', async () => {
+    class FileReaderMock {
+      onload: ((event: { target: { result: string } }) => void) | null = null
+      readAsText() {
+        this.onload?.({ target: { result: '{invalid json}' } })
+      }
+    }
+
+    vi.stubGlobal('FileReader', FileReaderMock)
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['{}'], 'broken.json', { type: 'application/json' })
+    fireEvent.change(fileInput, { target: { files: [file] } })
+
+    expect(await screen.findByText(/Failed to parse NFA file/i)).toBeInTheDocument()
+  })
+
+  it('shows an error for imported JSON missing required fields', async () => {
+    class FileReaderMock {
+      onload: ((event: { target: { result: string } }) => void) | null = null
+      readAsText() {
+        this.onload?.({ target: { result: JSON.stringify({ states: [] }) } })
+      }
+    }
+
+    vi.stubGlobal('FileReader', FileReaderMock)
+    render(<NFAInputPanel />, { wrapper: Wrapper })
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(['{}'], 'missing.json', { type: 'application/json' })
+    fireEvent.change(fileInput, { target: { files: [file] } })
+
+    expect(
+      await screen.findByText(/Invalid NFA file — missing required fields/i)
+    ).toBeInTheDocument()
   })
 })

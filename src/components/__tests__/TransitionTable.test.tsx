@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppProvider } from '../../state/AppContext'
 import { NotificationProvider } from '../layout/NotificationArea'
@@ -126,6 +126,45 @@ describe('TransitionTable — adding transitions via cell + button', () => {
     // Assert — a select element with "select" placeholder appears
     expect(screen.getByRole('combobox')).toBeInTheDocument()
   })
+
+  it('adds a transition when a target is selected in the dropdown', async () => {
+    renderWithControls()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.type(screen.getByPlaceholderText('Symbol'), 'a{Enter}')
+
+    await userEvent.click(screen.getAllByTitle('Add transition')[0]!)
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'q1')
+
+    expect(screen.getAllByText('q1').length).toBeGreaterThan(1)
+  })
+
+  it('closes the dropdown on blur without adding when no option is chosen', async () => {
+    renderWithControls()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.type(screen.getByPlaceholderText('Symbol'), 'a{Enter}')
+
+    await userEvent.click(screen.getAllByTitle('Add transition')[0]!)
+    const combo = screen.getByRole('combobox')
+    fireEvent.blur(combo)
+
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
+  it('removes a transition chip when its × button is clicked', async () => {
+    renderWithControls()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.type(screen.getByPlaceholderText('Symbol'), 'a{Enter}')
+
+    await userEvent.click(screen.getAllByTitle('Add transition')[0]!)
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'q1')
+    const removeButtons = screen.getAllByRole('button', { name: '×' })
+    await userEvent.click(removeButtons[1]!)
+
+    expect(screen.getAllByText('q1')).toHaveLength(1)
+  })
 })
 
 describe('TransitionTable — EditableLabel Escape key', () => {
@@ -144,5 +183,19 @@ describe('TransitionTable — EditableLabel Escape key', () => {
     // Assert — original label is restored (editing was cancelled)
     expect(screen.getByText('q0')).toBeInTheDocument()
     expect(screen.queryByText('newname')).not.toBeInTheDocument()
+  })
+
+  it('saves edited label on blur when non-empty', async () => {
+    renderWithControls()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    const label = screen.getByText('q0')
+
+    await userEvent.dblClick(label)
+    const input = screen.getByDisplayValue('q0')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'blurname')
+    fireEvent.blur(input)
+
+    expect(screen.getByText('blurname')).toBeInTheDocument()
   })
 })

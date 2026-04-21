@@ -4,12 +4,22 @@ import userEvent from '@testing-library/user-event'
 import { AppProvider } from '../../state/AppContext'
 import { NotificationProvider } from '../layout/NotificationArea'
 import { TableControls } from '../nfa-input/TableControls'
+import { TransitionTable } from '../nfa-input/TransitionTable'
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <NotificationProvider>
       <AppProvider>{children}</AppProvider>
     </NotificationProvider>
+  )
+}
+
+function renderWithTable() {
+  return render(
+    <Wrapper>
+      <TableControls />
+      <TransitionTable />
+    </Wrapper>
   )
 }
 
@@ -115,5 +125,41 @@ describe('TableControls — state controls after adding a state', () => {
     // Assert — without selection the state controls section is still hidden
     // (selectedStateId is null until the user clicks a state in the table)
     expect(screen.queryByRole('button', { name: /Set Start/i })).not.toBeInTheDocument()
+  })
+
+  it('shows selected-state controls after selecting a state in the transition table', async () => {
+    renderWithTable()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+
+    expect(screen.getByRole('button', { name: /★ Start/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Set Final/i })).toBeInTheDocument()
+  })
+
+  it('toggles start button text between "★ Start" and "Set Start"', async () => {
+    renderWithTable()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+
+    await userEvent.click(screen.getByRole('button', { name: /★ Start/i }))
+    expect(screen.getByRole('button', { name: /Set Start/i })).toBeInTheDocument()
+  })
+
+  it('toggles final button text between "Set Final" and "◉ Final"', async () => {
+    renderWithTable()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+
+    await userEvent.click(screen.getByRole('button', { name: /Set Final/i }))
+    expect(screen.getByRole('button', { name: /◉ Final/i })).toBeInTheDocument()
+  })
+
+  it('removes selected state with "- State" button when a state is selected', async () => {
+    renderWithTable()
+    await userEvent.click(screen.getByRole('button', { name: /\+ State/i }))
+    await userEvent.click(screen.getByText('q0'))
+    await userEvent.click(screen.getByRole('button', { name: /- State/i }))
+
+    expect(screen.queryByText('q0')).not.toBeInTheDocument()
   })
 })
