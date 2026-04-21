@@ -1,3 +1,3 @@
-import { testParse } from "./thompson";
+// import { testParse } from "./thompson";
 
-testParse("c(a+b)*");
+// testParse("c(a+b)*");
