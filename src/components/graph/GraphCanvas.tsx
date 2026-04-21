@@ -8,8 +8,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  type OnConnect,
-  type Connection,
   ReactFlowProvider,
   MarkerType,
   type Node,
@@ -28,7 +26,6 @@ import { EdgeBendContext } from './EdgeBendContext'
 function GraphCanvasInner() {
   const { nfa, nfaToRegexPhase, appMode } = useNFA()
   const { stateEliminationState, thompsonState } = useAppContext()
-  const { addTransition } = useNFA()
 
   const { fitView } = useReactFlow()
   const isThompson = appMode === 'regex-to-nfa'
@@ -134,38 +131,6 @@ function GraphCanvasInner() {
   const nodeTypes = useMemo(() => ({ stateNode: StateNode }), [])
   const edgeTypes = useMemo(() => ({ transitionEdge: TransitionEdge }), [])
 
-  // Connection dialog state
-  const [pendingConnection, setPendingConnection] = useState<Connection | null>(
-    null
-  )
-  const [symbolInput, setSymbolInput] = useState('')
-
-  const onConnect: OnConnect = useCallback(
-    (connection) => {
-      if (nfaToRegexPhase === 'converting') return
-      setPendingConnection(connection)
-      setSymbolInput('')
-    },
-    [nfaToRegexPhase]
-  )
-
-  const handleAddConnection = () => {
-    if (pendingConnection && symbolInput.trim()) {
-      const source = pendingConnection.source
-      const target = pendingConnection.target
-      // check if the symbol exists in the alphabet, if not add it
-      if (nfa && !nfa.alphabet.includes(symbolInput.trim())) {
-        nfa.alphabet.push(symbolInput.trim())
-      }
-
-      if (source && target) {
-        addTransition(source, target, symbolInput.trim())
-      }
-      setPendingConnection(null)
-      setSymbolInput('')
-    }
-  }
-
   const defaultEdgeOptions = useMemo(
     () => ({
       markerEnd: {
@@ -186,13 +151,12 @@ function GraphCanvasInner() {
         edges={displayEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onConnect={onConnect}
         onNodesChange={onNodesChange}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         nodesDraggable
-        nodesConnectable={nfaToRegexPhase === 'input' && appMode === 'nfa-to-regex'}
+        nodesConnectable={false}
         proOptions={{ hideAttribution: true }}
       >
         <Background />
@@ -216,43 +180,6 @@ function GraphCanvasInner() {
         </svg>
       </ReactFlow>
 
-      {/* Connection symbol dialog */}
-      {pendingConnection && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20">
-          <div className="rounded-lg bg-white p-4 shadow-xl">
-            <p className="mb-2 text-sm text-gray-700">
-              Enter transition symbol:
-            </p>
-            <input
-              type="text"
-              value={symbolInput}
-              onChange={(e) => setSymbolInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddConnection()
-                if (e.key === 'Escape') setPendingConnection(null)
-              }}
-              autoFocus
-              className="mb-2 w-full rounded border border-gray-300 px-2 py-1 text-sm font-mono"
-              placeholder="e.g., a, b, ε"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setPendingConnection(null)}
-                className="rounded px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddConnection}
-                disabled={!symbolInput.trim()}
-                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700 disabled:bg-blue-300 cursor-pointer"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
     </EdgeBendContext.Provider>
   )
