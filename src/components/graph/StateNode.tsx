@@ -13,6 +13,7 @@ export interface StateNodeData {
   isPredecessor?: boolean
   isSuccessor?: boolean
   isNewlyAdded?: boolean
+  [key: string]: unknown
 }
 
 type StateNodeProps = NodeProps & { data: StateNodeData }

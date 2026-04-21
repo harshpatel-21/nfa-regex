@@ -10,17 +10,13 @@ function makeProps(data: StateNodeData, selected = false): NodeProps & { data: S
     type: 'stateNode',
     data,
     selected,
-    xPos: 0,
-    yPos: 0,
-    zIndex: 0,
+    position: { x: 0, y: 0 },
     isConnectable: true,
-    positionAbsoluteX: 0,
-    positionAbsoluteY: 0,
     dragging: false,
     draggable: false,
     selectable: false,
     deletable: false,
-  }
+  } as any
 }
 
 describe('StateNode — label rendering', () => {

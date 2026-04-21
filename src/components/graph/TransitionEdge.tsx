@@ -19,6 +19,7 @@ export interface TransitionEdgeData {
   highlightColor?: string
   isBeingRemoved?: boolean
   bend?: { x: number; y: number }
+  [key: string]: unknown
 }
 
 type TransitionEdgeProps = EdgeProps & { data?: TransitionEdgeData }
