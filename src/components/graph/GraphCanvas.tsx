@@ -93,6 +93,12 @@ function GraphCanvasInner() {
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({})
   const [displayNodes, setDisplayNodes] = useState<Node[]>(layoutedNodes)
 
+  // Ref so the layout effect can read current displayed positions without a stale closure
+  const displayNodesRef = useRef<Node[]>(layoutedNodes)
+  useEffect(() => {
+    displayNodesRef.current = displayNodes
+  }, [displayNodes])
+
   // Track edge bend offsets so they survive re-renders
   const [edgeBends, setEdgeBends] = useState<Record<string, { x: number; y: number }>>({})
   const setEdgeBend = useCallback((id: string, x: number, y: number) => {
@@ -104,14 +110,29 @@ function GraphCanvasInner() {
     [edges, edgeBends]
   )
 
-  // When layout changes (graph structure or highlight update), merge in saved positions
+  // When layout changes, merge in saved positions.
+  // During state elimination, preserve the current displayed positions for remaining
+  // nodes so that eliminating a node doesn't trigger a full dagre re-layout.
   useEffect(() => {
-    setDisplayNodes(
-      layoutedNodes.map((node) => ({
-        ...node,
-        position: nodePositions[node.id] ?? node.position,
-      }))
-    )
+    if (isConverting) {
+      const currentPositions: Record<string, { x: number; y: number }> = {}
+      for (const node of displayNodesRef.current) {
+        currentPositions[node.id] = node.position
+      }
+      setDisplayNodes(
+        layoutedNodes.map((node) => ({
+          ...node,
+          position: currentPositions[node.id] ?? nodePositions[node.id] ?? node.position,
+        }))
+      )
+    } else {
+      setDisplayNodes(
+        layoutedNodes.map((node) => ({
+          ...node,
+          position: nodePositions[node.id] ?? node.position,
+        }))
+      )
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutedNodes])
 

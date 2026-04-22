@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { GraphCanvas } from '../graph/GraphCanvas'
-import type { NodeChange } from '@xyflow/react'
+import type { Node, NodeChange } from '@xyflow/react'
 
 let capturedOnNodesChange: ((changes: NodeChange[]) => void) | null = null
+let capturedNodes: Node[] | null = null
 
 const mockUseNFA = vi.fn()
 const mockUseAppContext = vi.fn()
@@ -26,8 +27,9 @@ vi.mock('@xyflow/react', async () => {
   const react = await vi.importActual<typeof import('@xyflow/react')>('@xyflow/react')
   return {
     ...react,
-    ReactFlow: ({ children, onNodesChange }: { children?: React.ReactNode; onNodesChange?: (changes: NodeChange[]) => void }) => {
+    ReactFlow: ({ nodes, children, onNodesChange }: { nodes?: Node[]; children?: React.ReactNode; onNodesChange?: (changes: NodeChange[]) => void }) => {
       capturedOnNodesChange = onNodesChange ?? null
+      capturedNodes = nodes ?? null
       return <div data-testid="react-flow">{children}</div>
     },
     ReactFlowProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -49,6 +51,7 @@ beforeEach(() => {
   mockUseAppContext.mockReset()
   mockUseGraphLayout.mockReset()
   fitViewSpy.mockReset()
+  capturedNodes = null
   mockUseGraphLayout.mockReturnValue({ nodes: [], edges: [] })
 })
 
@@ -259,6 +262,102 @@ describe('GraphCanvas branch coverage scenarios', () => {
         { type: 'position', id: 'q0', position: { x: 100, y: 200 }, dragging: false },
       ])
     })
+  })
+
+  it('preserves displayed positions for remaining nodes when a state is eliminated', () => {
+    // isConverting = true: nfaToRegexPhase 'converting' + gtg present
+    mockUseNFA.mockReturnValue({
+      nfa: { states: [], transitions: [], alphabet: [] },
+      nfaToRegexPhase: 'converting',
+      appMode: 'nfa-to-regex',
+    })
+    const gtg = { states: [], transitions: [], alphabet: [] }
+    mockUseAppContext.mockReturnValue({
+      stateEliminationState: {
+        gtg,
+        currentPathUpdates: [],
+        currentPathIndex: 0,
+        stateToRemove: null,
+        highlightedR: null,
+      },
+      thompsonState: { phase: 'idle', steps: [], currentStepIndex: 0, isTemplateCorrect: null },
+    })
+
+    const nodeA = { id: 'A', position: { x: 10, y: 20 }, data: {}, type: 'stateNode' as const }
+    const nodeB = { id: 'B', position: { x: 50, y: 60 }, data: {}, type: 'stateNode' as const }
+    const nodeC = { id: 'C', position: { x: 90, y: 100 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({ nodes: [nodeA, nodeB, nodeC], edges: [] })
+
+    const { rerender } = render(<GraphCanvas />)
+    expect(capturedNodes).toHaveLength(3)
+
+    // Simulate state elimination: C removed, dagre recomputes A and B to (0, 0)
+    mockUseGraphLayout.mockReturnValue({
+      nodes: [
+        { ...nodeA, position: { x: 0, y: 0 } },
+        { ...nodeB, position: { x: 0, y: 0 } },
+      ],
+      edges: [],
+    })
+    rerender(<GraphCanvas />)
+
+    expect(capturedNodes).toHaveLength(2)
+    expect(capturedNodes?.find((n) => n.id === 'A')?.position).toEqual({ x: 10, y: 20 })
+    expect(capturedNodes?.find((n) => n.id === 'B')?.position).toEqual({ x: 50, y: 60 })
+  })
+
+  it('uses dagre position for a node that is new to the display during state elimination', () => {
+    mockUseNFA.mockReturnValue({
+      nfa: { states: [], transitions: [], alphabet: [] },
+      nfaToRegexPhase: 'converting',
+      appMode: 'nfa-to-regex',
+    })
+    mockUseAppContext.mockReturnValue({
+      stateEliminationState: {
+        gtg: { states: [], transitions: [], alphabet: [] },
+        currentPathUpdates: [],
+        currentPathIndex: 0,
+        stateToRemove: null,
+        highlightedR: null,
+      },
+      thompsonState: { phase: 'idle', steps: [], currentStepIndex: 0, isTemplateCorrect: null },
+    })
+
+    const nodeA = { id: 'A', position: { x: 10, y: 20 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({ nodes: [nodeA], edges: [] })
+
+    const { rerender } = render(<GraphCanvas />)
+
+    // A new node D appears that was never in the display
+    const nodeD = { id: 'D', position: { x: 77, y: 88 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({
+      nodes: [{ ...nodeA, position: { x: 0, y: 0 } }, nodeD],
+      edges: [],
+    })
+    rerender(<GraphCanvas />)
+
+    // D has no prior position so it gets dagre's position
+    expect(capturedNodes?.find((n) => n.id === 'D')?.position).toEqual({ x: 77, y: 88 })
+    // A still keeps its original displayed position
+    expect(capturedNodes?.find((n) => n.id === 'A')?.position).toEqual({ x: 10, y: 20 })
+  })
+
+  it('uses dagre positions in non-converting mode when no saved position exists', () => {
+    setupBase() // nfaToRegexPhase: 'input' → isConverting = false
+
+    const nodeA = { id: 'A', position: { x: 10, y: 20 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({ nodes: [nodeA], edges: [] })
+
+    const { rerender } = render(<GraphCanvas />)
+
+    mockUseGraphLayout.mockReturnValue({
+      nodes: [{ ...nodeA, position: { x: 99, y: 99 } }],
+      edges: [],
+    })
+    rerender(<GraphCanvas />)
+
+    // No manual drag saved → falls through to dagre's new position
+    expect(capturedNodes?.find((n) => n.id === 'A')?.position).toEqual({ x: 99, y: 99 })
   })
 
   it('merges saved node positions into layouted nodes when layout updates', () => {
