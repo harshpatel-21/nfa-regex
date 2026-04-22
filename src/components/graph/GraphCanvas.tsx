@@ -111,10 +111,10 @@ function GraphCanvasInner() {
   )
 
   // When layout changes, merge in saved positions.
-  // During state elimination, preserve the current displayed positions for remaining
-  // nodes so that eliminating a node doesn't trigger a full dagre re-layout.
+  // During state elimination and Thompson construction, preserve the current displayed
+  // positions for existing nodes so adding/removing nodes doesn't trigger a full auto re-layout.
   useEffect(() => {
-    if (isConverting) {
+    if (isConverting || isThompson) {
       const currentPositions: Record<string, { x: number; y: number }> = {}
       for (const node of displayNodesRef.current) {
         currentPositions[node.id] = node.position

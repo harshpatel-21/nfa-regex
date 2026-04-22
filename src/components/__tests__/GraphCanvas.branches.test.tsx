@@ -342,6 +342,55 @@ describe('GraphCanvas branch coverage scenarios', () => {
     expect(capturedNodes?.find((n) => n.id === 'A')?.position).toEqual({ x: 10, y: 20 })
   })
 
+  it('preserves existing node positions when a Thompson step adds new nodes', () => {
+    mockUseNFA.mockReturnValue({
+      nfa: { states: [], transitions: [], alphabet: [] },
+      nfaToRegexPhase: 'input',
+      appMode: 'regex-to-nfa',
+    })
+    mockUseAppContext.mockReturnValue({
+      stateEliminationState: {
+        gtg: null,
+        currentPathUpdates: [],
+        currentPathIndex: 0,
+        stateToRemove: null,
+        highlightedR: null,
+      },
+      thompsonState: {
+        phase: 'stepping',
+        steps: [{ nfaAfter: { states: [], transitions: [], alphabet: [] }, newStateIds: [], newTransitionIds: [] }],
+        currentStepIndex: 0,
+        isTemplateCorrect: true,
+      },
+    })
+
+    const nodeA = { id: 'A', position: { x: 10, y: 20 }, data: {}, type: 'stateNode' as const }
+    const nodeB = { id: 'B', position: { x: 50, y: 60 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({ nodes: [nodeA, nodeB], edges: [] })
+
+    const { rerender } = render(<GraphCanvas />)
+    expect(capturedNodes).toHaveLength(2)
+
+    // Thompson adds a new node C; layout engine recomputes all positions
+    const nodeC = { id: 'C', position: { x: 33, y: 44 }, data: {}, type: 'stateNode' as const }
+    mockUseGraphLayout.mockReturnValue({
+      nodes: [
+        { ...nodeA, position: { x: 0, y: 0 } },
+        { ...nodeB, position: { x: 0, y: 0 } },
+        nodeC,
+      ],
+      edges: [],
+    })
+    rerender(<GraphCanvas />)
+
+    expect(capturedNodes).toHaveLength(3)
+    // Existing nodes keep their displayed positions
+    expect(capturedNodes?.find((n) => n.id === 'A')?.position).toEqual({ x: 10, y: 20 })
+    expect(capturedNodes?.find((n) => n.id === 'B')?.position).toEqual({ x: 50, y: 60 })
+    // New node gets the layout engine's position
+    expect(capturedNodes?.find((n) => n.id === 'C')?.position).toEqual({ x: 33, y: 44 })
+  })
+
   it('uses dagre positions in non-converting mode when no saved position exists', () => {
     setupBase() // nfaToRegexPhase: 'input' → isConverting = false
 
