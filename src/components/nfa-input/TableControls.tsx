@@ -2,10 +2,10 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useState } from 'react'
-import { useNFA } from '../../hooks/useNFA'
-import { Button } from '../common/Button'
-import { EPSILON } from '../../core/types'
+import { useState } from "react";
+import { useNFA } from "../../hooks/useNFA";
+import { Button } from "../common/Button";
+import { EPSILON } from "../../core/types";
 
 /** Controls for adding/removing states and alphabet symbols, and toggling start/final on the selected state. */
 export function TableControls() {
@@ -18,19 +18,19 @@ export function TableControls() {
     removeSymbolFromAlphabet,
     selectedStateId,
     resetNFA,
-  } = useNFA()
-  const [newSymbol, setNewSymbol] = useState('')
+  } = useNFA();
+  const [newSymbol, setNewSymbol] = useState("");
 
   /** Add the typed symbol to the alphabet if it is valid and not already present. */
   const handleAddSymbol = () => {
-    const sym = newSymbol.trim()
+    const sym = newSymbol.trim();
     if (sym && sym !== EPSILON && !nfa.alphabet.includes(sym)) {
-      addSymbolToAlphabet(sym)
-      setNewSymbol('')
+      addSymbolToAlphabet(sym);
+      setNewSymbol("");
     }
-  }
+  };
 
-  const selectedState = nfa.states.find((s) => s.id === selectedStateId)
+  const selectedState = nfa.states.find((s) => s.id === selectedStateId);
 
   return (
     <div className="flex flex-col gap-2">
@@ -52,7 +52,7 @@ export function TableControls() {
           type="text"
           value={newSymbol}
           onChange={(e) => setNewSymbol(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddSymbol()}
+          onKeyDown={(e) => e.key === "Enter" && handleAddSymbol()}
           placeholder="Symbol"
           maxLength={1}
           className="w-16 rounded border border-gray-300 px-2 py-1 text-sm"
@@ -83,21 +83,21 @@ export function TableControls() {
         <div className="flex items-center gap-2 border-t pt-2">
           <Button
             size="sm"
-            variant={selectedState.isStart ? 'primary' : 'secondary'}
+            variant={selectedState.isStart ? "primary" : "secondary"}
             onClick={() =>
               updateState(selectedState.id, { isStart: !selectedState.isStart })
             }
           >
-            {selectedState.isStart ? '★ Start' : 'Set Start'}
+            {selectedState.isStart ? "★ Start" : "Set Start"}
           </Button>
           <Button
             size="sm"
-            variant={selectedState.isFinal ? 'primary' : 'secondary'}
+            variant={selectedState.isFinal ? "primary" : "secondary"}
             onClick={() =>
               updateState(selectedState.id, { isFinal: !selectedState.isFinal })
             }
           >
-            {selectedState.isFinal ? '◉ Final' : 'Set Final'}
+            {selectedState.isFinal ? "◉ Final" : "Set Final"}
           </Button>
         </div>
       )}
@@ -107,5 +107,5 @@ export function TableControls() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -2,15 +2,15 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useRef, useState } from 'react'
-import { useNFA } from '../../hooks/useNFA'
-import { useStateElimination } from '../../hooks/useStateElimination'
-import { useNotification } from '../layout/NotificationArea'
-import { TransitionTable } from './TransitionTable'
-import { Button } from '../common/Button'
-import { examples } from '../../data/examples'
-import { EPSILON } from '../../core/types'
-import type { NFA } from '../../core/types'
+import { useRef, useState } from "react";
+import { useNFA } from "../../hooks/useNFA";
+import { useStateElimination } from "../../hooks/useStateElimination";
+import { useNotification } from "../layout/NotificationArea";
+import { TransitionTable } from "./TransitionTable";
+import { Button } from "../common/Button";
+import { examples } from "../../data/examples";
+import { EPSILON } from "../../core/types";
+import type { NFA } from "../../core/types";
 
 /**
  * Sidebar panel for building the input NFA.
@@ -29,68 +29,72 @@ export function NFAInputPanel() {
     removeSymbolFromAlphabet,
     selectedStateId,
     resetNFA,
-  } = useNFA()
-  const { startConversion } = useStateElimination()
-  const { notify } = useNotification()
-  const [showExamples, setShowExamples] = useState(false)
-  const [newSymbol, setNewSymbol] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  } = useNFA();
+  const { startConversion } = useStateElimination();
+  const { notify } = useNotification();
+  const [showExamples, setShowExamples] = useState(false);
+  const [newSymbol, setNewSymbol] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /** Serialize the current NFA to JSON and trigger a browser file download. */
   const handleExport = () => {
-    const json = JSON.stringify(nfa, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'nfa.json'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    const json = JSON.stringify(nfa, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nfa.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   /** Read an NFA from a JSON file and load it into state, showing a notification on success or error. */
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const parsed = JSON.parse(ev.target?.result as string) as NFA
-        if (!Array.isArray(parsed.states) || !Array.isArray(parsed.transitions) || !Array.isArray(parsed.alphabet)) {
-          notify('Invalid NFA file — missing required fields', 'error')
-          return
+        const parsed = JSON.parse(ev.target?.result as string) as NFA;
+        if (
+          !Array.isArray(parsed.states) ||
+          !Array.isArray(parsed.transitions) ||
+          !Array.isArray(parsed.alphabet)
+        ) {
+          notify("Invalid NFA file — missing required fields", "error");
+          return;
         }
-        loadNFA(parsed)
-        notify('NFA imported successfully', 'success')
+        loadNFA(parsed);
+        notify("NFA imported successfully", "success");
       } catch {
-        notify('Failed to parse NFA file', 'error')
+        notify("Failed to parse NFA file", "error");
       }
-    }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   /** Validate the NFA and start state elimination if validation passes. */
   const handleStartConversion = () => {
-    const errors = validate()
+    const errors = validate();
     if (errors.length > 0) {
-      notify(errors[0]?.message ?? 'Validation failed', 'error')
-      return
+      notify(errors[0]?.message ?? "Validation failed", "error");
+      return;
     }
-    startConversion()
-    notify('Conversion started — preprocessing complete', 'success')
-  }
+    startConversion();
+    notify("Conversion started — preprocessing complete", "success");
+  };
 
   /** Add the typed symbol to the alphabet if it is valid and not already present. */
   const handleAddSymbol = () => {
-    const sym = newSymbol.trim()
+    const sym = newSymbol.trim();
     if (sym && sym !== EPSILON && !nfa.alphabet.includes(sym)) {
-      addSymbolToAlphabet(sym)
-      setNewSymbol('')
+      addSymbolToAlphabet(sym);
+      setNewSymbol("");
     }
-  }
+  };
 
-  const selectedState = nfa.states.find((s) => s.id === selectedStateId)
+  const selectedState = nfa.states.find((s) => s.id === selectedStateId);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -101,7 +105,7 @@ export function NFAInputPanel() {
           variant="ghost"
           onClick={() => setShowExamples(!showExamples)}
         >
-          {showExamples ? 'Hide' : 'Load'} Examples
+          {showExamples ? "Hide" : "Load"} Examples
         </Button>
       </div>
 
@@ -119,9 +123,9 @@ export function NFAInputPanel() {
             <button
               key={ex.name}
               onClick={() => {
-                loadNFA(ex.nfa)
-                setShowExamples(false)
-                notify(`Loaded: ${ex.name}`, 'success')
+                loadNFA(ex.nfa);
+                setShowExamples(false);
+                notify(`Loaded: ${ex.name}`, "success");
               }}
               className="flex flex-col rounded px-2 py-1.5 text-left hover:bg-white transition-colors cursor-pointer"
             >
@@ -143,7 +147,7 @@ export function NFAInputPanel() {
             type="text"
             value={newSymbol}
             onChange={(e) => setNewSymbol(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddSymbol()}
+            onKeyDown={(e) => e.key === "Enter" && handleAddSymbol()}
             placeholder="Add symbol (a-z, 0-9...)"
             maxLength={1}
             className="flex-1 rounded border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -177,8 +181,8 @@ export function NFAInputPanel() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               onClick={() => addState()}
               title="Add new state (⌘N)"
             >
@@ -189,15 +193,19 @@ export function NFAInputPanel() {
               variant="danger"
               disabled={!selectedStateId}
               onClick={() => selectedStateId && removeState(selectedStateId)}
-              title={selectedStateId ? 'Remove selected state (Delete)' : 'Select a state first'}
+              title={
+                selectedStateId
+                  ? "Remove selected state (Delete)"
+                  : "Select a state first"
+              }
             >
               - State
             </Button>
           </div>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={resetNFA} 
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={resetNFA}
             title="Clear all states and symbols"
           >
             Clear All
@@ -206,29 +214,31 @@ export function NFAInputPanel() {
 
         {selectedState && (
           <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-50 border border-blue-200 rounded text-xs">
-            <span className="font-medium text-gray-600">Selected: {selectedState.label}</span>
+            <span className="font-medium text-gray-600">
+              Selected: {selectedState.label}
+            </span>
             <div className="flex gap-1 ml-auto">
               <Button
                 size="sm"
-                variant={selectedState.isStart ? 'primary' : 'secondary'}
+                variant={selectedState.isStart ? "primary" : "secondary"}
                 onClick={() =>
                   updateState(selectedState.id, {
                     isStart: !selectedState.isStart,
                   })
                 }
               >
-                {selectedState.isStart ? '★ Start' : 'Set Start'}
+                {selectedState.isStart ? "★ Start" : "Set Start"}
               </Button>
               <Button
                 size="sm"
-                variant={selectedState.isFinal ? 'primary' : 'secondary'}
+                variant={selectedState.isFinal ? "primary" : "secondary"}
                 onClick={() =>
                   updateState(selectedState.id, {
                     isFinal: !selectedState.isFinal,
                   })
                 }
               >
-                {selectedState.isFinal ? '◉ Final' : 'Set Final'}
+                {selectedState.isFinal ? "◉ Final" : "Set Final"}
               </Button>
             </div>
           </div>
@@ -237,10 +247,19 @@ export function NFAInputPanel() {
 
       {/* Import / Export */}
       <div className="flex items-center gap-2 border-t border-gray-200 pt-2">
-        <Button size="sm" variant="ghost" onClick={handleExport} disabled={nfa.states.length === 0}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleExport}
+          disabled={nfa.states.length === 0}
+        >
           ↓ Export NFA
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => fileInputRef.current?.click()}
+        >
           ↑ Import NFA
         </Button>
         <input
@@ -273,5 +292,5 @@ export function NFAInputPanel() {
         Convert to Regex
       </Button>
     </div>
-  )
+  );
 }

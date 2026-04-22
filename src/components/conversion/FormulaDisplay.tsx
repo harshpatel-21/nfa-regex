@@ -2,26 +2,26 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { useStateElimination } from '../../hooks/useStateElimination'
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useStateElimination } from "../../hooks/useStateElimination";
 
 interface RValueInfo {
-  label: string
-  value: string
-  color: string
-  bgColor: string
-  description: string
+  label: string;
+  value: string;
+  color: string;
+  bgColor: string;
+  description: string;
 }
 
 interface FormulaDisplayProps {
-  R1: string
-  R2: string
-  R3: string
-  R4: string
-  predecessorLabel: string
-  successorLabel: string
-  removedStateLabel: string
+  R1: string;
+  R2: string;
+  R3: string;
+  R4: string;
+  predecessorLabel: string;
+  successorLabel: string;
+  removedStateLabel: string;
 }
 
 /**
@@ -37,46 +37,46 @@ export function FormulaDisplay({
   successorLabel,
   removedStateLabel,
 }: FormulaDisplayProps) {
-  const { setHighlightedR } = useStateElimination()
-  const [openTooltip, setOpenTooltip] = useState<string | null>(null)
+  const { setHighlightedR } = useStateElimination();
+  const [openTooltip, setOpenTooltip] = useState<string | null>(null);
 
   const rValues: RValueInfo[] = [
     {
-      label: 'R\u2081',
+      label: "R\u2081",
       value: R1,
-      color: 'border-blue-400 text-blue-700',
-      bgColor: 'bg-blue-50',
+      color: "border-blue-400 text-blue-700",
+      bgColor: "bg-blue-50",
       description: `Transition from ${predecessorLabel} to ${removedStateLabel}`,
     },
     {
-      label: 'R\u2082',
+      label: "R\u2082",
       value: R2,
-      color: 'border-orange-400 text-orange-700',
-      bgColor: 'bg-orange-50',
+      color: "border-orange-400 text-orange-700",
+      bgColor: "bg-orange-50",
       description: `Self-loop on ${removedStateLabel} (state being eliminated)`,
     },
     {
-      label: 'R\u2083',
+      label: "R\u2083",
       value: R3,
-      color: 'border-green-400 text-green-700',
-      bgColor: 'bg-green-50',
+      color: "border-green-400 text-green-700",
+      bgColor: "bg-green-50",
       description: `Transition from ${removedStateLabel} to ${successorLabel}`,
     },
     {
-      label: 'R\u2084',
+      label: "R\u2084",
       value: R4,
-      color: 'border-purple-400 text-purple-700',
-      bgColor: 'bg-purple-50',
+      color: "border-purple-400 text-purple-700",
+      bgColor: "bg-purple-50",
       description: `Existing direct transition from ${predecessorLabel} to ${successorLabel}`,
     },
-  ]
+  ];
 
-  const rHighlightMap: Record<number, 'R1' | 'R2' | 'R3' | 'R4'> = {
-    0: 'R1',
-    1: 'R2',
-    2: 'R3',
-    3: 'R4',
-  }
+  const rHighlightMap: Record<number, "R1" | "R2" | "R3" | "R4"> = {
+    0: "R1",
+    1: "R2",
+    2: "R3",
+    3: "R4",
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -101,8 +101,8 @@ export function FormulaDisplay({
                 }
                 className={`flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold cursor-pointer transition-colors ${
                   openTooltip === rv.label
-                    ? 'bg-gray-700 text-white border-gray-700'
-                    : 'bg-white text-gray-400 border-gray-300 hover:border-gray-500 hover:text-gray-600'
+                    ? "bg-gray-700 text-white border-gray-700"
+                    : "bg-white text-gray-400 border-gray-300 hover:border-gray-500 hover:text-gray-600"
                 }`}
                 aria-label={`What is ${rv.label}?`}
                 title={`What is ${rv.label}?`}
@@ -149,5 +149,5 @@ export function FormulaDisplay({
         </span>
       </div>
     </div>
-  )
+  );
 }

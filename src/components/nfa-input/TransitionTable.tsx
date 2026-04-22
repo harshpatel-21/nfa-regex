@@ -2,11 +2,11 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useState } from 'react'
-import { useNFA } from '../../hooks/useNFA'
-import { useAppContext } from '../../state/AppContext'
-import { EPSILON } from '../../core/types'
-import type { StateId } from '../../core/types'
+import { useState } from "react";
+import { useNFA } from "../../hooks/useNFA";
+import { useAppContext } from "../../state/AppContext";
+import { EPSILON } from "../../core/types";
+import type { StateId } from "../../core/types";
 
 /**
  * Render the NFA transition table. Rows are states, columns are alphabet symbols plus ε.
@@ -14,24 +14,24 @@ import type { StateId } from '../../core/types'
  */
 export function TransitionTable() {
   const { nfa, selectedStateId, addTransition, removeTransition, updateState } =
-    useNFA()
-  const { nfaDispatch } = useAppContext()
+    useNFA();
+  const { nfaDispatch } = useAppContext();
 
-  const columns = [...nfa.alphabet, EPSILON]
+  const columns = [...nfa.alphabet, EPSILON];
 
   /** Return all transitions from a given state on a given symbol. */
   const getTargets = (stateId: StateId, symbol: string) => {
     return nfa.transitions.filter(
-      (t) => t.source === stateId && t.symbol === symbol
-    )
-  }
+      (t) => t.source === stateId && t.symbol === symbol,
+    );
+  };
 
   if (nfa.states.length === 0) {
     return (
       <p className="text-xs text-gray-400 italic">
         Add states and symbols to build the transition table.
       </p>
-    )
+    );
   }
 
   if (columns.length === 0) {
@@ -39,7 +39,7 @@ export function TransitionTable() {
       <p className="text-xs text-gray-400 italic">
         Add at least one alphabet symbol.
       </p>
-    )
+    );
   }
 
   return (
@@ -64,9 +64,9 @@ export function TransitionTable() {
           {nfa.states.map((state) => (
             <tr
               key={state.id}
-              className={`cursor-pointer ${state.id === selectedStateId ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+              className={`cursor-pointer ${state.id === selectedStateId ? "bg-blue-50" : "hover:bg-gray-50"}`}
               onClick={() =>
-                nfaDispatch({ type: 'SELECT_STATE', payload: state.id })
+                nfaDispatch({ type: "SELECT_STATE", payload: state.id })
               }
             >
               <td className="border border-gray-200 px-2 py-1 font-mono">
@@ -105,14 +105,14 @@ export function TransitionTable() {
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
 interface TransitionCellProps {
-  targets: { id: string; target: string }[]
-  allStates: { id: string; label: string }[]
-  onAdd: (targetId: string) => void
-  onRemove: (transitionId: string) => void
+  targets: { id: string; target: string }[];
+  allStates: { id: string; label: string }[];
+  onAdd: (targetId: string) => void;
+  onRemove: (transitionId: string) => void;
 }
 
 /** Table cell showing the target states for one (source, symbol) pair with add/remove controls. */
@@ -122,12 +122,12 @@ function TransitionCell({
   onAdd,
   onRemove,
 }: TransitionCellProps) {
-  const [isAdding, setIsAdding] = useState(false)
+  const [isAdding, setIsAdding] = useState(false);
 
   const targetLabels = targets.map((t) => {
-    const state = allStates.find((s) => s.id === t.target)
-    return { transitionId: t.id, label: state?.label ?? t.target }
-  })
+    const state = allStates.find((s) => s.id === t.target);
+    return { transitionId: t.id, label: state?.label ?? t.target };
+  });
 
   return (
     <td className="border border-gray-200 px-2 py-1 text-center">
@@ -140,8 +140,8 @@ function TransitionCell({
             {t.label}
             <button
               onClick={(e) => {
-                e.stopPropagation()
-                onRemove(t.transitionId)
+                e.stopPropagation();
+                onRemove(t.transitionId);
               }}
               className="text-blue-400 hover:text-red-500 cursor-pointer"
             >
@@ -155,9 +155,9 @@ function TransitionCell({
             className="text-xs border rounded px-1 py-0.5"
             onChange={(e) => {
               if (e.target.value) {
-                onAdd(e.target.value)
+                onAdd(e.target.value);
               }
-              setIsAdding(false)
+              setIsAdding(false);
             }}
             onBlur={() => setIsAdding(false)}
             defaultValue=""
@@ -174,8 +174,8 @@ function TransitionCell({
         ) : (
           <button
             onClick={(e) => {
-              e.stopPropagation()
-              setIsAdding(true)
+              e.stopPropagation();
+              setIsAdding(true);
             }}
             className="text-gray-300 hover:text-blue-500 cursor-pointer text-sm"
             title="Add transition"
@@ -185,7 +185,7 @@ function TransitionCell({
         )}
       </div>
     </td>
-  )
+  );
 }
 
 /** Inline-editable state label; double-click to edit, blur or Enter to confirm. */
@@ -193,11 +193,11 @@ function EditableLabel({
   value,
   onChange,
 }: {
-  value: string
-  onChange: (v: string) => void
+  value: string;
+  onChange: (v: string) => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
 
   if (isEditing) {
     return (
@@ -206,33 +206,33 @@ function EditableLabel({
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => {
-          if (draft.trim()) onChange(draft.trim())
-          setIsEditing(false)
+          if (draft.trim()) onChange(draft.trim());
+          setIsEditing(false);
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            if (draft.trim()) onChange(draft.trim())
-            setIsEditing(false)
+          if (e.key === "Enter") {
+            if (draft.trim()) onChange(draft.trim());
+            setIsEditing(false);
           }
-          if (e.key === 'Escape') setIsEditing(false)
+          if (e.key === "Escape") setIsEditing(false);
         }}
         autoFocus
         className="w-12 border-b border-blue-400 bg-transparent text-xs outline-none"
         onClick={(e) => e.stopPropagation()}
       />
-    )
+    );
   }
 
   return (
     <span
       className="cursor-text hover:text-blue-600"
       onDoubleClick={(e) => {
-        e.stopPropagation()
-        setDraft(value)
-        setIsEditing(true)
+        e.stopPropagation();
+        setDraft(value);
+        setIsEditing(true);
       }}
     >
       {value}
     </span>
-  )
+  );
 }

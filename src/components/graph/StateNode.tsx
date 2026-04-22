@@ -2,21 +2,21 @@
  * AI assistance was used for graph-specific visual styling in this file,
  * such as state highlighting and display treatment for graph interactions.
  */
-import { memo } from 'react'
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { memo } from "react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
 
 export interface StateNodeData {
-  label: string
-  isStart: boolean
-  isFinal: boolean
-  isBeingEliminated?: boolean
-  isPredecessor?: boolean
-  isSuccessor?: boolean
-  isNewlyAdded?: boolean
-  [key: string]: unknown
+  label: string;
+  isStart: boolean;
+  isFinal: boolean;
+  isBeingEliminated?: boolean;
+  isPredecessor?: boolean;
+  isSuccessor?: boolean;
+  isNewlyAdded?: boolean;
+  [key: string]: unknown;
 }
 
-type StateNodeProps = NodeProps & { data: StateNodeData }
+type StateNodeProps = NodeProps & { data: StateNodeData };
 
 /**
  * Custom React Flow node rendering a state circle with start/final indicators.
@@ -31,21 +31,21 @@ function StateNodeComponent({ data, selected }: StateNodeProps) {
     isPredecessor,
     isSuccessor,
     isNewlyAdded,
-  } = data
+  } = data;
 
-  let borderColor = 'border-gray-400'
-  if (isBeingEliminated) borderColor = 'border-red-500'
-  else if (isPredecessor) borderColor = 'border-blue-500'
-  else if (isSuccessor) borderColor = 'border-green-500'
-  else if (isNewlyAdded) borderColor = 'border-amber-500'
-  else if (selected) borderColor = 'border-blue-400'
-  else if (isStart) borderColor = 'border-green-500'
+  let borderColor = "border-gray-400";
+  if (isBeingEliminated) borderColor = "border-red-500";
+  else if (isPredecessor) borderColor = "border-blue-500";
+  else if (isSuccessor) borderColor = "border-green-500";
+  else if (isNewlyAdded) borderColor = "border-amber-500";
+  else if (selected) borderColor = "border-blue-400";
+  else if (isStart) borderColor = "border-green-500";
 
   const bgColor = isBeingEliminated
-    ? 'bg-red-50'
+    ? "bg-red-50"
     : isNewlyAdded
-    ? 'bg-amber-50'
-    : 'bg-white'
+      ? "bg-amber-50"
+      : "bg-white";
 
   return (
     <div className="relative">
@@ -58,7 +58,7 @@ function StateNodeComponent({ data, selected }: StateNodeProps) {
       {/* Outer circle (double for final states) */}
       <div
         className={`flex items-center justify-center rounded-full border-2 ${bgColor} ${borderColor} ${
-          isFinal ? 'p-1' : 'w-16 h-16'
+          isFinal ? "p-1" : "w-16 h-16"
         }`}
         style={isFinal ? { width: 64, height: 64 } : undefined}
       >
@@ -83,7 +83,7 @@ function StateNodeComponent({ data, selected }: StateNodeProps) {
         className="!w-2 !h-2 !bg-gray-400 !border-none"
       />
     </div>
-  )
+  );
 }
 
-export const StateNode = memo(StateNodeComponent)
+export const StateNode = memo(StateNodeComponent);

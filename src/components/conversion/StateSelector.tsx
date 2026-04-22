@@ -2,19 +2,19 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useStateElimination } from '../../hooks/useStateElimination'
-import { Button } from '../common/Button'
+import { useStateElimination } from "../../hooks/useStateElimination";
+import { Button } from "../common/Button";
 
-/** 
- * Display buttons for each eliminable state and an auto-pick option that selects the state with the fewest transitions. 
+/**
+ * Display buttons for each eliminable state and an auto-pick option that selects the state with the fewest transitions.
  */
 export function StateSelector() {
-  const { eliminableStates, gtg, selectStateToRemove } = useStateElimination()
+  const { eliminableStates, gtg, selectStateToRemove } = useStateElimination();
 
   if (eliminableStates.length === 0) {
     return (
       <p className="text-sm text-gray-500">No states left to eliminate.</p>
-    )
+    );
   }
 
   const handleAutoPick = () => {
@@ -22,12 +22,12 @@ export function StateSelector() {
     const best = eliminableStates.reduce((prev, curr) => {
       const count = (s: typeof curr) =>
         (gtg?.transitions ?? []).filter(
-          (t) => t.source === s.id || t.target === s.id
-        ).length
-      return count(curr) < count(prev) ? curr : prev
-    })
-    selectStateToRemove(best.id)
-  }
+          (t) => t.source === s.id || t.target === s.id,
+        ).length;
+      return count(curr) < count(prev) ? curr : prev;
+    });
+    selectStateToRemove(best.id);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -49,5 +49,5 @@ export function StateSelector() {
         Auto-pick
       </Button>
     </div>
-  )
+  );
 }

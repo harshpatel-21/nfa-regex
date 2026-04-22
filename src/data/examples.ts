@@ -114,7 +114,6 @@ export const examples: NFAExample[] = [
         { id: "ex5_t6", source: "ex5_q2", target: "ex5_q2", symbol: "a" },
         { id: "ex5_t7", source: "ex5_q2", target: "ex5_q1", symbol: "b" },
         { id: "ex5_t8", source: "ex5_q2", target: "ex5_q0", symbol: "c" },
-
       ],
       alphabet: ["a", "b", "c"],
     },

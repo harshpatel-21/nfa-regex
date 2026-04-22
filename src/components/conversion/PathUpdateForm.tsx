@@ -2,18 +2,18 @@
  * AI assistance was used mainly for styling in this component
  * (visual presentation, class tuning, and UI polish).
  */
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import type { PathUpdate, GTG } from '../../core/types'
-import { useStateElimination } from '../../hooks/useStateElimination'
-import { FormulaDisplay } from './FormulaDisplay'
-import { Button } from '../common/Button'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import type { PathUpdate, GTG } from "../../core/types";
+import { useStateElimination } from "../../hooks/useStateElimination";
+import { FormulaDisplay } from "./FormulaDisplay";
+import { Button } from "../common/Button";
 
 interface PathUpdateFormProps {
-  pathUpdate: PathUpdate
-  pathIndex: number
-  removedStateLabel: string
-  gtg: GTG | null
+  pathUpdate: PathUpdate;
+  pathIndex: number;
+  removedStateLabel: string;
+  gtg: GTG | null;
 }
 
 /**
@@ -26,42 +26,41 @@ export function PathUpdateForm({
   removedStateLabel,
   gtg,
 }: PathUpdateFormProps) {
-  const { submitAnswer, autoCompletePath, advancePath } = useStateElimination()
-  const [userInput, setUserInput] = useState('')
-  const [hasSubmitted, setHasSubmitted] = useState(false)
-  const [showAnswer, setShowAnswer] = useState(false)
+  const { submitAnswer, autoCompletePath, advancePath } = useStateElimination();
+  const [userInput, setUserInput] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
 
   const predecessorLabel =
-    gtg?.states.find((s) => s.id === pathUpdate.from)?.label ??
-    pathUpdate.from
+    gtg?.states.find((s) => s.id === pathUpdate.from)?.label ?? pathUpdate.from;
   const successorLabel =
-    gtg?.states.find((s) => s.id === pathUpdate.to)?.label ?? pathUpdate.to
+    gtg?.states.find((s) => s.id === pathUpdate.to)?.label ?? pathUpdate.to;
 
   const handleCheck = () => {
-    submitAnswer(pathIndex, userInput.trim())
-    setHasSubmitted(true)
-  }
+    submitAnswer(pathIndex, userInput.trim());
+    setHasSubmitted(true);
+  };
 
   const handleAutoComplete = () => {
-    autoCompletePath(pathIndex)
-    setUserInput(pathUpdate.expectedResult)
-    setHasSubmitted(true)
-  }
+    autoCompletePath(pathIndex);
+    setUserInput(pathUpdate.expectedResult);
+    setHasSubmitted(true);
+  };
 
   const handleNext = () => {
-    setUserInput('')
-    setHasSubmitted(false)
-    setShowAnswer(false)
-    advancePath()
-  }
+    setUserInput("");
+    setHasSubmitted(false);
+    setShowAnswer(false);
+    advancePath();
+  };
 
-  const isCorrect = pathUpdate.isCorrect
+  const isCorrect = pathUpdate.isCorrect;
 
   return (
     <div className="flex flex-col gap-3">
       {/* Path header */}
       <p className="text-xs text-gray-600">
-        Path:{' '}
+        Path:{" "}
         <span className="font-mono font-semibold">
           {predecessorLabel} → {successorLabel}
         </span>
@@ -81,26 +80,27 @@ export function PathUpdateForm({
       {/* User input */}
       <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-gray-600">
-          Enter the resulting expression (do not include the grey brackets shown in formula):
+          Enter the resulting expression (do not include the grey brackets shown
+          in formula):
         </label>
         <div className="flex gap-2">
           <input
             type="text"
             value={userInput}
             onChange={(e) => {
-              setUserInput(e.target.value)
-              if (hasSubmitted) setHasSubmitted(false)
+              setUserInput(e.target.value);
+              if (hasSubmitted) setHasSubmitted(false);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && userInput.trim()) handleCheck()
+              if (e.key === "Enter" && userInput.trim()) handleCheck();
             }}
             placeholder="e.g., a+bc*d"
             className={`flex-1 rounded border px-2 py-1.5 font-mono text-sm outline-none transition-colors ${
               hasSubmitted
                 ? isCorrect
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-red-400 bg-red-50'
-                : 'border-gray-300 focus:border-blue-500'
+                  ? "border-green-400 bg-green-50"
+                  : "border-red-400 bg-red-50"
+                : "border-gray-300 focus:border-blue-500"
             }`}
           />
         </div>
@@ -140,7 +140,7 @@ export function PathUpdateForm({
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             className="flex flex-col gap-1 rounded bg-red-50 border border-red-200 px-3 py-2"
           >
             <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export function PathUpdateForm({
               onClick={() => setShowAnswer(!showAnswer)}
               className="text-xs text-red-500 hover:text-red-700 underline cursor-pointer text-left"
             >
-              {showAnswer ? 'Hide answer' : 'Show answer'}
+              {showAnswer ? "Hide answer" : "Show answer"}
             </button>
             {showAnswer && (
               <p className="font-mono text-sm text-red-800 bg-red-100 rounded px-2 py-1">
@@ -171,5 +171,5 @@ export function PathUpdateForm({
         )}
       </div>
     </div>
-  )
+  );
 }
